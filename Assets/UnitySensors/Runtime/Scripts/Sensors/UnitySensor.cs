@@ -23,13 +23,23 @@ namespace UnitySensors.Sensor
         private void Awake()
         {
             _dt = 0.0f;
-            _frequency_inv = 1.0f / _frequency;
+            if (_frequency <= 0.0f)
+            {
+                _frequency = 0.0f;
+                _frequency_inv = 0.0f;
+            }
+            else
+            {
+                _frequency_inv = 1.0f / _frequency;
+            }
 
             Init();
         }
 
         protected virtual void Update()
         {
+            if (_frequency_inv == 0.0f) return;
+
             _dt += Time.deltaTime;
             if (_dt < _frequency_inv) return;
 
@@ -43,6 +53,12 @@ namespace UnitySensors.Sensor
         {
             onSensorUpdated = null;
             OnSensorDestroy();
+        }
+
+        public void ForceUpdateSensor()
+        {
+            _time = Time.time;
+            UpdateSensor();
         }
 
         protected abstract void Init();

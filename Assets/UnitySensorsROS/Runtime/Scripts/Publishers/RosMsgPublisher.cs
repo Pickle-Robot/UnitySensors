@@ -17,9 +17,8 @@ namespace UnitySensors.ROS.Publisher
         [SerializeField]
         protected T _serializer;
 
-        private ROSConnection _ros;
+        protected ROSConnection _ros;
 
-        private float _time;
         private float _dt;
 
         private float _frequency_inv;
@@ -27,7 +26,15 @@ namespace UnitySensors.ROS.Publisher
         protected virtual void Start()
         {
             _dt = 0.0f;
-            _frequency_inv = 1.0f / _frequency;
+            if (_frequency <= 0.0f)
+            {
+                _frequency = 0.0f;
+                _frequency_inv = 0.0f;
+            }
+            else
+            {
+                _frequency_inv = 1.0f / _frequency;
+            }
 
             _ros = ROSConnection.GetOrCreateInstance();
             _ros.RegisterPublisher<TT>(_topicName);
@@ -40,9 +47,14 @@ namespace UnitySensors.ROS.Publisher
             _dt += Time.deltaTime;
             if (_dt < _frequency_inv) return;
 
-            _ros.Publish(_topicName, _serializer.Serialize());
+            Publish();
 
             _dt -= _frequency_inv;
+        }
+
+        public void Publish()
+        {
+            _ros.Publish(_topicName, _serializer.Serialize());
         }
 
         private void OnDestroy()
