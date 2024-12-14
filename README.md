@@ -51,8 +51,8 @@ To receive the data in ROS take a look at [ROS-TCP-Endpoint][external-RosTCPEndp
 2. In the Package Manager window, find and click the + button in the upper lefthand corner of the window. Select `Add package from git URL....`
 
 3. Enter the git URL for the desired package.
-    1. For the UnitySensors, enter `https://github.com/Pickle-Robot/UnitySensors.git?path=/Assets/UnitySensors#87909a9f1ae0eeb5c448583e226810a356223d3a`.
-    2. For the UnitySensorsROS, enter `https://github.com/Pickle-Robot/UnitySensors.git?path=/Assets/UnitySensorsROS#87909a9f1ae0eeb5c448583e226810a356223d3a`.
+    1. For the UnitySensors, enter `https://github.com/Pickle-Robot/UnitySensors.git?path=/Assets/UnitySensors#0db55ec134317793beefcd13d1de2a4ddd5b9a1a`.
+    2. For the UnitySensorsROS, enter `https://github.com/Pickle-Robot/UnitySensors.git?path=/Assets/UnitySensorsROS#0db55ec134317793beefcd13d1de2a4ddd5b9a1a`.
     __Note: UnitySensorsROS does not contain UnitySensors.__
 4. Click `Add`.
 
