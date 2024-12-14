@@ -44,6 +44,8 @@ namespace UnitySensors.ROS.Publisher
 
         protected virtual void Update()
         {
+            if (_frequency_inv == 0.0f) return;
+
             _dt += Time.deltaTime;
             if (_dt < _frequency_inv) return;
 
