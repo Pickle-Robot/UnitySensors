@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnitySensors.Sensor.TF;
 
+#if UNITY_EDITOR
 namespace UnitySensors.ROS.Editor
 {
     [CustomEditor(typeof(TFLink))]
@@ -13,3 +14,4 @@ namespace UnitySensors.ROS.Editor
         }
     }
 }
+#endif

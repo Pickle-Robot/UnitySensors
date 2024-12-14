@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
+#if UNITY_EDITOR
 namespace UnitySensors.Attribute
 {
     [CustomPropertyDrawer(typeof(InterfaceAttribute))]
@@ -60,3 +61,4 @@ namespace UnitySensors.Attribute
     {
     }
 }
+#endif
