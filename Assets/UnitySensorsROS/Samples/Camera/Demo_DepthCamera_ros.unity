@@ -273,6 +273,194 @@ MonoBehaviour:
   _requestTopic: /camera/color/request
   _sensor: {fileID: 196073957}
   _publisher: {fileID: 196073956}
+--- !u!1001 &266551608
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 952137284}
+    m_Modifications:
+    - target: {fileID: 2016422477619200576, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: _frequency
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200579, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: _frequency
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200579, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: _serializer._source
+      value: 
+      objectReference: {fileID: 266551612}
+    - target: {fileID: 2016422477619200579, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: _serializer._header._source
+      value: 
+      objectReference: {fileID: 266551612}
+    - target: {fileID: 2016422477619200581, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200581, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200581, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200581, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200581, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200581, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200581, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200581, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200581, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200581, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200581, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200586, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: m_Name
+      value: RGBDCamera_ros
+      objectReference: {fileID: 0}
+    - target: {fileID: 2016422477619200586, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7476313626036288691, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: _frequency
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7476313626036288691, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: _topicName
+      value: /camera/depth/image/compressed
+      objectReference: {fileID: 0}
+    - target: {fileID: 7476313626036288691, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: _serializer._source
+      value: 
+      objectReference: {fileID: 266551612}
+    - target: {fileID: 7476313626036288691, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: _serializer.quality
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 7476313626036288691, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: _serializer._sourceTexture
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7476313626036288691, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      propertyPath: _serializer._header._source
+      value: 
+      objectReference: {fileID: 266551612}
+    m_RemovedComponents:
+    - {fileID: 2016422477619200576, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2016422477619200586, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      insertIndex: 2
+      addedObject: {fileID: 266551612}
+    - targetCorrespondingSourceObject: {fileID: 2016422477619200586, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 266551611}
+  m_SourcePrefab: {fileID: 100100000, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413, type: 3}
+--- !u!4 &266551609 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2016422477619200581, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+    type: 3}
+  m_PrefabInstance: {fileID: 266551608}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &266551610 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2016422477619200586, guid: ae5d0d7848c9e3c46a8ba3ca8b9f3413,
+    type: 3}
+  m_PrefabInstance: {fileID: 266551608}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &266551611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 266551610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b474a6242e811f04488e3cb67b65dd35, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _frequency: 10
+  _topicName: /camera/color/image/compressed
+  _serializer:
+    _source: {fileID: 266551612}
+    _sourceTexture: 1
+    _header:
+      _source: {fileID: 266551612}
+      _frame_id: /camera_frame
+    quality: 100
+--- !u!114 &266551612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 266551610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58044c1bc2a88b943af133119c691560, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _frequency: 10
+  _resolution: {x: 640, y: 480}
+  _fov: 30
+  _minRange: 0.05
+  _maxRange: 100
+  _gaussianNoiseSigma: 0
 --- !u!1 &376771492
 GameObject:
   m_ObjectHideFlags: 0
@@ -288,7 +476,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &376771493
 Transform:
   m_ObjectHideFlags: 0
@@ -566,7 +754,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &546573195
 Transform:
   m_ObjectHideFlags: 0
@@ -758,7 +946,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1310079319
 Transform:
   m_ObjectHideFlags: 0
@@ -1183,6 +1371,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 546573195}
+    - targetCorrespondingSourceObject: {fileID: 2848956544552890604, guid: 581b84ef57339314c92df1cef0a06b47,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 266551609}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 581b84ef57339314c92df1cef0a06b47, type: 3}
 --- !u!1001 &1967682551

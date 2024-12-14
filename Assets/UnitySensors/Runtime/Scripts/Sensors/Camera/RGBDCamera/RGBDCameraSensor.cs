@@ -72,7 +72,7 @@ namespace UnitySensors.Sensor.Camera
             _depthCamera.farClipPlane = _maxRange;
 
             _depthTexture = new Texture2D(_resolution.x, _resolution.y, TextureFormat.RGBAFloat, false);
-            _colorTexture = new Texture2D(_resolution.x, _resolution.y, TextureFormat.BGRA32, false);
+            _colorTexture = new Texture2D(_resolution.x, _resolution.y, TextureFormat.RGBA32, false);
 
             _mat = new Material(Shader.Find("UnitySensors/Color2Depth"));
             float f = m_camera.farClipPlane;
