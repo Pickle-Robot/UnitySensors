@@ -24,6 +24,9 @@ namespace UnitySensors.Sensor.Camera
         [SerializeField]
         private float _gaussianNoiseSigma = 0.0f;
 
+        [SerializeField]
+        private Vector3 _orientation = Vector3.zero;
+
         private UnityEngine.Camera _camera;
         private RenderTexture _rt = null;
         private Texture2D _texture;
@@ -73,12 +76,15 @@ namespace UnitySensors.Sensor.Camera
 
             _directions = new NativeArray<float3>(_pointsNum, Allocator.Persistent);
 
+            Quaternion orientation_quaternion = Quaternion.Euler(_orientation);
+
             float z = _resolution.y * 0.5f / Mathf.Tan(m_camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
             for (int y = 0; y < _resolution.y; y++)
             {
                 for (int x = 0; x < _resolution.x; x++)
                 {
                     Vector3 vec = new Vector3(-_resolution.x / 2 + x, -_resolution.y / 2 + y, z);
+                    vec =  orientation_quaternion * vec;
                     _directions[y * _resolution.x + x] = vec.normalized;
                 }
             }
