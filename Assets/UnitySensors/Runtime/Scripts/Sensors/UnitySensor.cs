@@ -38,12 +38,12 @@ namespace UnitySensors.Sensor
 
         protected virtual void Update()
         {
+            _time = Time.time;
             if (_frequency_inv == 0.0f) return;
 
             _dt += Time.deltaTime;
             if (_dt < _frequency_inv) return;
 
-            _time = Time.time;
             UpdateSensor();
 
             _dt -= _frequency_inv;
