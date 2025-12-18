@@ -152,6 +152,28 @@ namespace UnitySensors.Sensor.LiDAR
             };
         }
 
+        private bool _isJobScheduled = false;
+
+        // Optimized for performance
+        protected override void Update()
+        {
+            if (_isJobScheduled)
+            {
+                if (_jobHandle.IsCompleted)
+                {
+                    _jobHandle.Complete();
+                    ProcessJobResults();
+                    _isJobScheduled = false;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            base.Update();
+        }
+
         protected override void UpdateSensor()
         {
             _updateRaycastCommandsJob.origin = _transform.position;
@@ -166,8 +188,11 @@ namespace UnitySensors.Sensor.LiDAR
             _jobHandle = _raycastHitsToPointsJob.Schedule(pointsNumPerScan, 1, raycastJobHandle);
 
             JobHandle.ScheduleBatchedJobs();
-            _jobHandle.Complete();
+            _isJobScheduled = true;
+        }
 
+        private void ProcessJobResults()
+        {
             // Copy results (World Space Slice) from batch buffer to Accumulator (World Space)
             int remaining = scanPattern.size - _currentScanIndex;
             if (pointsNumPerScan <= remaining)
