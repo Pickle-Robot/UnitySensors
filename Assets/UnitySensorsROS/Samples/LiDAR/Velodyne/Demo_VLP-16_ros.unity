@@ -128,9 +128,9 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 7465098328349088720}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &1438717031 stripped
+--- !u!4 &1379722532 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 2848956544552890604, guid: 581b84ef57339314c92df1cef0a06b47,
+  m_CorrespondingSourceObject: {fileID: 2848956545337060222, guid: 581b84ef57339314c92df1cef0a06b47,
     type: 3}
   m_PrefabInstance: {fileID: 2848956545974690955}
   m_PrefabAsset: {fileID: 0}
@@ -245,8 +245,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _frequency: 10
-  _scanPattern: {fileID: 11400000, guid: f0221c83205fa634c8ecd626305d9072, type: 2}
-  _pointsNumPerScan: 100
+  _scanPattern: {fileID: 11400000, guid: e4461be772cd0b7488ed536ecd21f9db, type: 2}
+  _pointsNumPerScan: 2000
   _minRange: 0.5
   _maxRange: 40
   _gaussianNoiseSigma: 0.5
@@ -277,7 +277,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 1438717031}
+    m_TransformParent: {fileID: 1379722532}
     m_Modifications:
     - target: {fileID: 773861078808927764, guid: d7ba18bcf853116459c3becb08f01c65,
         type: 3}
@@ -317,7 +317,7 @@ PrefabInstance:
     - target: {fileID: 773861078808927765, guid: d7ba18bcf853116459c3becb08f01c65,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 773861078808927765, guid: d7ba18bcf853116459c3becb08f01c65,
         type: 3}
@@ -327,7 +327,7 @@ PrefabInstance:
     - target: {fileID: 773861078808927765, guid: d7ba18bcf853116459c3becb08f01c65,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 773861078808927765, guid: d7ba18bcf853116459c3becb08f01c65,
         type: 3}
@@ -475,17 +475,17 @@ PrefabInstance:
     - target: {fileID: 2848956544552890605, guid: 581b84ef57339314c92df1cef0a06b47,
         type: 3}
       propertyPath: _end.x
-      value: 5
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 2848956544552890605, guid: 581b84ef57339314c92df1cef0a06b47,
         type: 3}
       propertyPath: _speed
-      value: 1
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 2848956544552890605, guid: 581b84ef57339314c92df1cef0a06b47,
         type: 3}
       propertyPath: _start.x
-      value: -5
+      value: -20
       objectReference: {fileID: 0}
     - target: {fileID: 2848956544552890605, guid: 581b84ef57339314c92df1cef0a06b47,
         type: 3}
@@ -555,14 +555,14 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 2848956544552890604, guid: 581b84ef57339314c92df1cef0a06b47,
+    - targetCorrespondingSourceObject: {fileID: 2848956545337060222, guid: 581b84ef57339314c92df1cef0a06b47,
         type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 846283469}
-    - targetCorrespondingSourceObject: {fileID: 2848956544552890604, guid: 581b84ef57339314c92df1cef0a06b47,
-        type: 3}
-      insertIndex: -1
+      insertIndex: 3
       addedObject: {fileID: 1665781414}
+    - targetCorrespondingSourceObject: {fileID: 2848956545337060222, guid: 581b84ef57339314c92df1cef0a06b47,
+        type: 3}
+      insertIndex: 4
+      addedObject: {fileID: 846283469}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 581b84ef57339314c92df1cef0a06b47, type: 3}
 --- !u!1001 &7465098328349088720
@@ -571,7 +571,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 1438717031}
+    m_TransformParent: {fileID: 1379722532}
     m_Modifications:
     - target: {fileID: 773861078808927764, guid: d7ba18bcf853116459c3becb08f01c65,
         type: 3}
@@ -641,7 +641,7 @@ PrefabInstance:
     - target: {fileID: 773861080551603223, guid: d7ba18bcf853116459c3becb08f01c65,
         type: 3}
       propertyPath: _frequency
-      value: 10
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 773861080551603223, guid: d7ba18bcf853116459c3becb08f01c65,
         type: 3}
@@ -652,7 +652,12 @@ PrefabInstance:
     - target: {fileID: 773861080551603223, guid: d7ba18bcf853116459c3becb08f01c65,
         type: 3}
       propertyPath: _pointsNumPerScan
-      value: 57600
+      value: 576
+      objectReference: {fileID: 0}
+    - target: {fileID: 2649015881702736681, guid: d7ba18bcf853116459c3becb08f01c65,
+        type: 3}
+      propertyPath: _frequency
+      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
