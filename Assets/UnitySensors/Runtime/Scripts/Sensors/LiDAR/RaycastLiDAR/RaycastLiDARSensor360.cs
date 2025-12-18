@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using UnityEngine;
 
 using Unity.Collections;
@@ -36,7 +35,6 @@ namespace UnitySensors.Sensor.LiDAR
 
         private PointCloud<PointXYZI> _fullPointCloud; // Accumulator
         private int _currentScanIndex = 0;
-        private float _accumulatedTime = 0f;
 
         public event Action onScanCompleted;
 
@@ -58,10 +56,6 @@ namespace UnitySensors.Sensor.LiDAR
         protected override void Init()
         {
             base.Init();
-
-            // Note: We don't use base.ApplyScanFrequency or rely on base.Update() logic because 
-            // the base logic caps updates to once per frame, which is too slow for 360 scanning 
-            // if the batch size is small.
 
             _transform = this.transform;
 
@@ -86,9 +80,11 @@ namespace UnitySensors.Sensor.LiDAR
 
         private void SetupJobs()
         {
-            _raycastCommands = new NativeArray<RaycastCommand>(pointsNumPerScan, Allocator.Persistent);
-            _raycastHits = new NativeArray<RaycastHit>(pointsNumPerScan, Allocator.Persistent);
-            _noises = new NativeArray<float>(pointsNumPerScan, Allocator.Persistent);
+            // Allocate Max Capacity (Full Scan Size) to allow large variable batches
+            int maxCapacity = scanPattern.size;
+            _raycastCommands = new NativeArray<RaycastCommand>(maxCapacity, Allocator.Persistent);
+            _raycastHits = new NativeArray<RaycastHit>(maxCapacity, Allocator.Persistent);
+            _noises = new NativeArray<float>(maxCapacity, Allocator.Persistent);
 
             _updateRaycastCommandsJob = new IUpdateRaycastCommandsJob()
             {
@@ -118,76 +114,97 @@ namespace UnitySensors.Sensor.LiDAR
                 indexOffset = 0,
                 raycastHits = _raycastHits,
                 noises = _noises,
-                points = base.pointCloud.points, // Stores the batch slice
+                points = _fullPointCloud.points, // Write directly to Full Cloud (using Slice)
                 outWorldSpace = false
             };
         }
 
         protected override void Update()
         {
-            // Override base.Update() to control the simulation rate manually.
-            // We want to process 'totalPoints * frequency' points per second.
+            // Calculate how many points to process THIS frame to match frequency
+            float pointsPerSecond = scanPattern.size * _scanFrequency;
+            float pointsToProcessFloat = pointsPerSecond * Time.deltaTime;
+            int pointsToProcess = Mathf.CeilToInt(pointsToProcessFloat);
 
-            _accumulatedTime += Time.deltaTime;
+            // Clamp to full scan size
+            pointsToProcess = Mathf.Min(pointsToProcess, scanPattern.size);
 
-            // Calculate how much time one batch takes (e.g. if we need 100 batches per second, each takes 0.01s)
-            // Total batches per second = (TotalPoints / BatchSize) * Frequency
-            float batchesPerSecond = (scanPattern.size / (float)pointsNumPerScan) * _scanFrequency;
-            float timePerBatch = 1.0f / batchesPerSecond;
+            if (pointsToProcess <= 0) return;
 
-            int safetyLoopCount = 0;
-            const int MAX_BATCHES_PER_FRAME = 5; // Cap to prevent freezing
-
-            while (_accumulatedTime >= timePerBatch)
-            {
-                _accumulatedTime -= timePerBatch;
-                UpdateSensor();
-
-                safetyLoopCount++;
-                if (safetyLoopCount >= MAX_BATCHES_PER_FRAME)
-                {
-                    // If we are falling behind, reset the accumulator to avoid a death spiral
-                    _accumulatedTime = 0;
-                    break;
-                }
-            }
-        }
-
-        protected override void UpdateSensor()
-        {
+            // Prepare Jobs
             _updateRaycastCommandsJob.origin = _transform.position;
             _updateRaycastCommandsJob.localToWorldMatrix = _transform.localToWorldMatrix;
+            _updateRaycastCommandsJob.indexOffset = _currentScanIndex;
 
-            JobHandle updateRaycastCommandsJobHandle = _updateRaycastCommandsJob.Schedule(pointsNumPerScan, 1);
-            JobHandle updateGaussianNoisesJobHandle = _updateGaussianNoisesJob.Schedule(pointsNumPerScan, 1, updateRaycastCommandsJobHandle);
-            JobHandle raycastJobHandle = RaycastCommand.ScheduleBatch(_raycastCommands, _raycastHits, 256, updateGaussianNoisesJobHandle);
-            _jobHandle = _raycastHitsToPointsJob.Schedule(pointsNumPerScan, 1, raycastJobHandle);
+            // Schedule Raycast Command Generation (Burst)
+            // Pass _jobHandle from previous frame/batch (which is complete) to satisfy safety system
+            JobHandle commandsHandle = _updateRaycastCommandsJob.Schedule(pointsToProcess, 64, _jobHandle);
 
-            JobHandle.ScheduleBatchedJobs();
-            _jobHandle.Complete();
+            // Schedule Noise Generation (Burst)
+            JobHandle noiseHandle = _updateGaussianNoisesJob.Schedule(pointsToProcess, 64, _jobHandle);
 
-            // Copy results from batch buffer to Accumulator
+            // Combine Dependencies
+            JobHandle dep = JobHandle.CombineDependencies(commandsHandle, noiseHandle);
+
+            // Schedule Physics Raycasts (Physics Engine)
+            NativeArray<RaycastCommand> commandsSlice = _raycastCommands.GetSubArray(0, pointsToProcess);
+            NativeArray<RaycastHit> hitsSlice = _raycastHits.GetSubArray(0, pointsToProcess);
+
+            JobHandle raycastHandle = RaycastCommand.ScheduleBatch(commandsSlice, hitsSlice, 256, dep);
+
+            // Schedule Hits -> Points (Burst)
+            // We need to handle wrapping manually since we are writing to a Ring Buffer (_fullPointCloud)
+
             int remaining = scanPattern.size - _currentScanIndex;
-            if (pointsNumPerScan <= remaining)
+
+            if (pointsToProcess <= remaining)
             {
-                NativeArray<PointXYZI>.Copy(base.pointCloud.points, 0, _fullPointCloud.points, _currentScanIndex, pointsNumPerScan);
+                // No wrapping
+                var pointsSlice = _fullPointCloud.points.GetSubArray(_currentScanIndex, pointsToProcess);
+
+                _raycastHitsToPointsJob.indexOffset = _currentScanIndex;
+                _raycastHitsToPointsJob.raycastHits = hitsSlice;
+                _raycastHitsToPointsJob.points = pointsSlice;
+
+                _jobHandle = _raycastHitsToPointsJob.Schedule(pointsToProcess, 64, raycastHandle);
             }
             else
             {
-                // Copy first part to end of buffer
-                NativeArray<PointXYZI>.Copy(base.pointCloud.points, 0, _fullPointCloud.points, _currentScanIndex, remaining);
-                // Copy second part to start of buffer
-                NativeArray<PointXYZI>.Copy(base.pointCloud.points, remaining, _fullPointCloud.points, 0, pointsNumPerScan - remaining);
+                // Wrapping: Split into two jobs
+                int firstPart = remaining;
+                int secondPart = pointsToProcess - remaining;
+
+                // Job 1: End of buffer
+                var hitsSlice1 = hitsSlice.GetSubArray(0, firstPart);
+                var pointsSlice1 = _fullPointCloud.points.GetSubArray(_currentScanIndex, firstPart);
+
+                _raycastHitsToPointsJob.indexOffset = _currentScanIndex;
+                _raycastHitsToPointsJob.raycastHits = hitsSlice1;
+                _raycastHitsToPointsJob.points = pointsSlice1;
+
+                JobHandle h1 = _raycastHitsToPointsJob.Schedule(firstPart, 64, raycastHandle);
+
+                // Job 2: Start of buffer
+                var hitsSlice2 = hitsSlice.GetSubArray(firstPart, secondPart);
+                var pointsSlice2 = _fullPointCloud.points.GetSubArray(0, secondPart);
+
+                // Note: The index offset for directions needs to account for the wrap.
+                _raycastHitsToPointsJob.indexOffset = _currentScanIndex + firstPart;
+                _raycastHitsToPointsJob.raycastHits = hitsSlice2;
+                _raycastHitsToPointsJob.points = pointsSlice2;
+
+                _jobHandle = _raycastHitsToPointsJob.Schedule(secondPart, 64, h1);
             }
 
-            // Update offsets for next frame
-            int nextIndex = _currentScanIndex + pointsNumPerScan;
+            JobHandle.ScheduleBatchedJobs();
+
+            // Synchronous Wait (Fixes Race Condition with Serializer)
+            _jobHandle.Complete();
+
+            // Advance Index
+            int nextIndex = _currentScanIndex + pointsToProcess;
             bool scanComplete = nextIndex >= scanPattern.size;
-
             _currentScanIndex = nextIndex % scanPattern.size;
-
-            _updateRaycastCommandsJob.indexOffset = _currentScanIndex;
-            _raycastHitsToPointsJob.indexOffset = _currentScanIndex;
 
             if (onSensorUpdated != null)
                 onSensorUpdated.Invoke();
@@ -196,6 +213,11 @@ namespace UnitySensors.Sensor.LiDAR
             {
                 onScanCompleted?.Invoke();
             }
+        }
+
+        protected override void UpdateSensor()
+        {
+            // Unused in this implementation, logic moved to Update()
         }
 
         protected override void OnSensorDestroy()
