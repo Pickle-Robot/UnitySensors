@@ -19,6 +19,9 @@ namespace UnitySensors.Sensor.LiDAR
         [SerializeField]
         private float _scanFrequency = 10.0f; // Hz
 
+        [SerializeField, Tooltip("If true, points are accumulated in Local Space relative to the sensor pose at the time of capture, creating a rolling shutter distortion effect when the sensor moves. If false, points are accumulated in World Space (effectively deskewed relative to the Map frame).")]
+        private bool _enableRollingShutter = false;
+
         private Transform _transform;
 
         private JobHandle _jobHandle;
@@ -51,6 +54,12 @@ namespace UnitySensors.Sensor.LiDAR
             {
                 _scanFrequency = value;
             }
+        }
+
+        public bool EnableRollingShutter
+        {
+            get => _enableRollingShutter;
+            set => _enableRollingShutter = value;
         }
 
         protected override void Init()
@@ -115,7 +124,7 @@ namespace UnitySensors.Sensor.LiDAR
                 raycastHits = _raycastHits,
                 noises = _noises,
                 points = _fullPointCloud.points, // Write directly to Full Cloud (using Slice)
-                outWorldSpace = false
+                outWorldSpace = !_enableRollingShutter
             };
         }
 
@@ -136,7 +145,20 @@ namespace UnitySensors.Sensor.LiDAR
             _updateRaycastCommandsJob.localToWorldMatrix = _transform.localToWorldMatrix;
             _updateRaycastCommandsJob.indexOffset = _currentScanIndex;
 
+            // Update the matrix for the HitsToPoints job so it transforms correctly to World Space
+            _raycastHitsToPointsJob.localToWorldMatrix = _transform.localToWorldMatrix;
+            _raycastHitsToPointsJob.outWorldSpace = !_enableRollingShutter;
+
             // Schedule Raycast Command Generation (Burst)
+            // Note: We need to set the internal raycastCommands reference again if the job struct was copied?
+            // No, NativeArrays are reference types (structs containing pointers).
+            // However, the error says: "The UNKNOWN_OBJECT_TYPE IUpdateRaycastCommandsJob.raycastCommands has not been assigned or constructed."
+            // This suggests that the NativeArray inside the job struct is invalid.
+
+            // Re-assign the NativeArray references every frame to be safe.
+            _updateRaycastCommandsJob.raycastCommands = _raycastCommands;
+            _updateRaycastCommandsJob.directions = _directions;
+
             // Pass _jobHandle from previous frame/batch (which is complete) to satisfy safety system
             JobHandle commandsHandle = _updateRaycastCommandsJob.Schedule(pointsToProcess, 64, _jobHandle);
 
