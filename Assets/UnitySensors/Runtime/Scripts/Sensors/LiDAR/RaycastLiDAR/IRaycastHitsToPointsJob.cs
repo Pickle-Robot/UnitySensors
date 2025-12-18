@@ -28,6 +28,10 @@ namespace UnitySensors.Sensor.LiDAR
         public NativeArray<RaycastHit> raycastHits;
         [ReadOnly]
         public NativeArray<float> noises;
+        [ReadOnly]
+        public Matrix4x4 localToWorldMatrix;
+        [ReadOnly]
+        public bool outWorldSpace;
 
         public NativeArray<PointXYZI> points;
 
@@ -36,9 +40,17 @@ namespace UnitySensors.Sensor.LiDAR
             float distance = raycastHits[index].distance;
             float distance_noised = distance + noises[index];
             distance = (minRange < distance && distance < maxRange && minRange < distance_noised && distance_noised < maxRange) ? distance_noised : 0;
+
+            float3 position = directions[index + indexOffset] * distance;
+
+            if (outWorldSpace)
+            {
+                position = math.mul(localToWorldMatrix, new float4(position, 1.0f)).xyz;
+            }
+
             PointXYZI point = new PointXYZI()
             {
-                position = directions[index + indexOffset] * distance,
+                position = position,
                 intensity = (distance != 0) ? maxIntensity * sqrMinRange / (distance * distance) : 0
             };
             points[index] = point;
