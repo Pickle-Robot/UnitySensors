@@ -2,12 +2,12 @@ using System;
 using System.Reflection;
 using UnityEngine;
 
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 
 using UnitySensors.DataType.Sensor;
+
 using UnitySensors.DataType.Sensor.PointCloud;
 using UnitySensors.Utils.Noise;
 
@@ -27,7 +27,6 @@ namespace UnitySensors.Sensor.LiDAR
         private IUpdateRaycastCommandsJob _updateRaycastCommandsJob;
         private IUpdateGaussianNoisesJob _updateGaussianNoisesJob;
         private IRaycastHitsToPointsJob _raycastHitsToPointsJob;
-        private IPointsTransformJob _pointsTransformJob;
 
         private NativeArray<float3> _directions;
         private NativeArray<RaycastCommand> _raycastCommands;
@@ -35,16 +34,16 @@ namespace UnitySensors.Sensor.LiDAR
 
         private NativeArray<float> _noises;
 
-        private PointCloud<PointXYZI> _worldPointCloud; // Accumulator (World Space)
-        private PointCloud<PointXYZI> _localPointCloud; // Output (Local Space)
+        private PointCloud<PointXYZI> _fullPointCloud; // Accumulator
         private int _currentScanIndex = 0;
+        private float _accumulatedTime = 0f;
 
         public event Action onScanCompleted;
 
         /// <summary>
         /// Returns the accumulated point cloud containing the full 360 scan in Local Space.
         /// </summary>
-        public override PointCloud<PointXYZI> pointCloud { get => _worldPointCloud; }
+        public override PointCloud<PointXYZI> pointCloud { get => _fullPointCloud; }
         public override int pointsNum { get => scanPattern.size; }
 
         public float ScanFrequency
@@ -53,37 +52,21 @@ namespace UnitySensors.Sensor.LiDAR
             set
             {
                 _scanFrequency = value;
-                ApplyScanFrequency();
             }
         }
 
         protected override void Init()
         {
             base.Init();
-            ApplyScanFrequency();
+
+            // Note: We don't use base.ApplyScanFrequency or rely on base.Update() logic because 
+            // the base logic caps updates to once per frame, which is too slow for 360 scanning 
+            // if the batch size is small.
 
             _transform = this.transform;
 
             LoadScanData();
             SetupJobs();
-        }
-
-        private void ApplyScanFrequency()
-        {
-            float totalPoints = scanPattern.size;
-            float batchSize = pointsNumPerScan;
-
-            if (batchSize <= 0) return;
-
-            float targetUpdateFreq = _scanFrequency * (totalPoints / batchSize);
-
-            // Reflection to set _frequency and _frequency_inv in UnitySensor base class
-            var type = typeof(UnitySensor);
-            var freqField = type.GetField("_frequency", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (freqField != null) freqField.SetValue(this, targetUpdateFreq);
-
-            var freqInvField = type.GetField("_frequency_inv", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (freqInvField != null) freqInvField.SetValue(this, 1.0f / targetUpdateFreq);
         }
 
         private void LoadScanData()
@@ -94,14 +77,8 @@ namespace UnitySensors.Sensor.LiDAR
                 _directions[i] = _directions[i + scanPattern.size] = scanPattern.scans[i];
             }
 
-            // Buffer for World Space accumulation
-            _worldPointCloud = new PointCloud<PointXYZI>()
-            {
-                points = new NativeArray<PointXYZI>(scanPattern.size, Allocator.Persistent)
-            };
-
-            // Buffer for Local Space output
-            _localPointCloud = new PointCloud<PointXYZI>()
+            // Buffer for accumulation (Local Space)
+            _fullPointCloud = new PointCloud<PointXYZI>()
             {
                 points = new NativeArray<PointXYZI>(scanPattern.size, Allocator.Persistent)
             };
@@ -130,7 +107,7 @@ namespace UnitySensors.Sensor.LiDAR
                 noises = _noises
             };
 
-            // Calculate points in World Space directly
+            // Calculate points in Local Space directly (outWorldSpace = false)
             _raycastHitsToPointsJob = new IRaycastHitsToPointsJob()
             {
                 minRange = minRange,
@@ -142,23 +119,44 @@ namespace UnitySensors.Sensor.LiDAR
                 raycastHits = _raycastHits,
                 noises = _noises,
                 points = base.pointCloud.points, // Stores the batch slice
-                outWorldSpace = false // Reverting to Local Space output to fix the split artifact
+                outWorldSpace = false
             };
+        }
 
-            _pointsTransformJob = new IPointsTransformJob()
+        protected override void Update()
+        {
+            // Override base.Update() to control the simulation rate manually.
+            // We want to process 'totalPoints * frequency' points per second.
+
+            _accumulatedTime += Time.deltaTime;
+
+            // Calculate how much time one batch takes (e.g. if we need 100 batches per second, each takes 0.01s)
+            // Total batches per second = (TotalPoints / BatchSize) * Frequency
+            float batchesPerSecond = (scanPattern.size / (float)pointsNumPerScan) * _scanFrequency;
+            float timePerBatch = 1.0f / batchesPerSecond;
+
+            int safetyLoopCount = 0;
+            const int MAX_BATCHES_PER_FRAME = 5; // Cap to prevent freezing
+
+            while (_accumulatedTime >= timePerBatch)
             {
-                input = _worldPointCloud.points,
-                output = _localPointCloud.points
-            };
+                _accumulatedTime -= timePerBatch;
+                UpdateSensor();
+
+                safetyLoopCount++;
+                if (safetyLoopCount >= MAX_BATCHES_PER_FRAME)
+                {
+                    // If we are falling behind, reset the accumulator to avoid a death spiral
+                    _accumulatedTime = 0;
+                    break;
+                }
+            }
         }
 
         protected override void UpdateSensor()
         {
             _updateRaycastCommandsJob.origin = _transform.position;
             _updateRaycastCommandsJob.localToWorldMatrix = _transform.localToWorldMatrix;
-
-            // Update the matrix for the HitsToPoints job so it transforms correctly to World Space
-            // _raycastHitsToPointsJob.localToWorldMatrix = _transform.localToWorldMatrix;
 
             JobHandle updateRaycastCommandsJobHandle = _updateRaycastCommandsJob.Schedule(pointsNumPerScan, 1);
             JobHandle updateGaussianNoisesJobHandle = _updateGaussianNoisesJob.Schedule(pointsNumPerScan, 1, updateRaycastCommandsJobHandle);
@@ -168,18 +166,18 @@ namespace UnitySensors.Sensor.LiDAR
             JobHandle.ScheduleBatchedJobs();
             _jobHandle.Complete();
 
-            // Copy results (World Space Slice) from batch buffer to Accumulator (World Space)
+            // Copy results from batch buffer to Accumulator
             int remaining = scanPattern.size - _currentScanIndex;
             if (pointsNumPerScan <= remaining)
             {
-                NativeArray<PointXYZI>.Copy(base.pointCloud.points, 0, _worldPointCloud.points, _currentScanIndex, pointsNumPerScan);
+                NativeArray<PointXYZI>.Copy(base.pointCloud.points, 0, _fullPointCloud.points, _currentScanIndex, pointsNumPerScan);
             }
             else
             {
                 // Copy first part to end of buffer
-                NativeArray<PointXYZI>.Copy(base.pointCloud.points, 0, _worldPointCloud.points, _currentScanIndex, remaining);
+                NativeArray<PointXYZI>.Copy(base.pointCloud.points, 0, _fullPointCloud.points, _currentScanIndex, remaining);
                 // Copy second part to start of buffer
-                NativeArray<PointXYZI>.Copy(base.pointCloud.points, remaining, _worldPointCloud.points, 0, pointsNumPerScan - remaining);
+                NativeArray<PointXYZI>.Copy(base.pointCloud.points, remaining, _fullPointCloud.points, 0, pointsNumPerScan - remaining);
             }
 
             // Update offsets for next frame
@@ -196,11 +194,6 @@ namespace UnitySensors.Sensor.LiDAR
 
             if (scanComplete)
             {
-                // Transform the full World Space cloud to Local Space relative to CURRENT transform
-                // _pointsTransformJob.matrix = _transform.worldToLocalMatrix;
-                // JobHandle transformHandle = _pointsTransformJob.Schedule(scanPattern.size, 64);
-                // transformHandle.Complete();
-
                 onScanCompleted?.Invoke();
             }
         }
@@ -213,28 +206,9 @@ namespace UnitySensors.Sensor.LiDAR
             if (_raycastCommands.IsCreated) _raycastCommands.Dispose();
             if (_raycastHits.IsCreated) _raycastHits.Dispose();
 
-            if (_worldPointCloud != null) _worldPointCloud.Dispose();
-            if (_localPointCloud != null) _localPointCloud.Dispose();
+            if (_fullPointCloud != null) _fullPointCloud.Dispose();
 
             base.OnSensorDestroy();
-        }
-    }
-
-    [BurstCompile]
-    public struct IPointsTransformJob : IJobParallelFor
-    {
-        [ReadOnly]
-        public Matrix4x4 matrix;
-        [ReadOnly]
-        public NativeArray<PointXYZI> input;
-
-        public NativeArray<PointXYZI> output;
-
-        public void Execute(int index)
-        {
-            PointXYZI point = input[index];
-            point.position = math.mul(matrix, new float4(point.position, 1.0f)).xyz;
-            output[index] = point;
         }
     }
 }

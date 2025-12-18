@@ -245,13 +245,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _frequency: 10
-  _scanPattern: {fileID: 11400000, guid: f0221c83205fa634c8ecd626305d9072, type: 2}
-  _pointsNumPerScan: 100
+  _scanPattern: {fileID: 11400000, guid: 3bb52ca1b0a69a047b26a25306de8dc4, type: 2}
+  _pointsNumPerScan: 1152
   _minRange: 0.5
   _maxRange: 40
   _gaussianNoiseSigma: 0.5
   _maxIntensity: 255
-  _scanFrequency: 10
+  _scanFrequency: 20
 --- !u!114 &1636736915
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -264,7 +264,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e044df2717feda8587f0d886a9e360a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _frequency: 10
+  _frequency: 20
   _topicName: /velodyne_points
   _serializer:
     _header:
@@ -475,17 +475,17 @@ PrefabInstance:
     - target: {fileID: 2848956544552890605, guid: 581b84ef57339314c92df1cef0a06b47,
         type: 3}
       propertyPath: _end.x
-      value: 5
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 2848956544552890605, guid: 581b84ef57339314c92df1cef0a06b47,
         type: 3}
       propertyPath: _speed
-      value: 1
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 2848956544552890605, guid: 581b84ef57339314c92df1cef0a06b47,
         type: 3}
       propertyPath: _start.x
-      value: -5
+      value: -20
       objectReference: {fileID: 0}
     - target: {fileID: 2848956544552890605, guid: 581b84ef57339314c92df1cef0a06b47,
         type: 3}
