@@ -20,10 +20,12 @@ namespace UnitySensors.Sensor.Camera
             _camera = GetComponent<UnityEngine.Camera>();
             _camera.fieldOfView = _fov;
 
-            _rt = new RenderTexture(_resolution.x, _resolution.y, 32, RenderTextureFormat.ARGBFloat);
+            // sRGB read/write so the GPU gamma-encodes on write in a linear color space project;
+            // a float render texture would stay linear and every published image would look dark.
+            _rt = new RenderTexture(_resolution.x, _resolution.y, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             _camera.targetTexture = _rt;
 
-            _texture = new Texture2D(_resolution.x, _resolution.y, TextureFormat.RGBAFloat, false);
+            _texture = new Texture2D(_resolution.x, _resolution.y, TextureFormat.RGBA32, false);
         }
 
         protected override void UpdateSensor()
@@ -37,13 +39,13 @@ namespace UnitySensors.Sensor.Camera
         protected bool LoadTexture()
         {
             bool result = false;
-            AsyncGPUReadback.Request(_rt, 0, request => {
+            AsyncGPUReadback.Request(_rt, 0, TextureFormat.RGBA32, request => {
                 if (request.hasError)
                 {
                 }
                 else
                 {
-                    var data = request.GetData<Color>();
+                    var data = request.GetData<Color32>();
                     _texture.LoadRawTextureData(data);
                     _texture.Apply();
                     result = true;
